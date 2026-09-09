@@ -1,0 +1,8 @@
+-r requirements.txt
+# Additional packages imported in the archived exploratory cells.
+scipy>=1.10,<2
+folium>=0.14,<1
+osmnx>=1.9,<3
+geopandas>=0.14,<2
+# Optional local notebook environment.
+jupyterlab>=4,<5
