@@ -10,3 +10,7 @@ venv/
 /outputs/
 /data/*
 !/data/README.md
+!/data/역 경도 위도.xlsx
+!/data/엣지데이터 신규.xlsx
+!/data/쌍가중치_정규화_OD.xlsx
+!/data/총점수_정규화_역주변시설.xlsx

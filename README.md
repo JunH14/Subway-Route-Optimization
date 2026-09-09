@@ -10,6 +10,7 @@
 | --- | --- |
 | 문제 | 기존 노선망의 연결 구조와 급격한 꺾임 등을 고려한 대안 노선 설계 |
 | 입력 | 역 좌표, 후보 엣지, 정규화된 OD 가중치, 역 주변 시설 점수 |
+| 포함된 데이터 | 역 좌표 288행, 엣지 531행, OD 148,401행, 시설 점수 288행 |
 | 노선 구성 | 2호선 순환 경로와 8개 종착역 쌍을 이용한 9개 노선 후보 |
 | 주요 기법 | KDTree, A* 계열 탐색, MST 비교, 기하 규칙, Simulated Annealing 실험, 국소 개선 |
 | 구현 | Python, pandas, NumPy, NetworkX, SciPy, Matplotlib |
@@ -24,13 +25,37 @@
 
 최종 적합도는 `1.0 × OD 점수 + 2.5 × 시설 점수 + 0.1 × 길이 패널티 + 0.013 × 각도 패널티`입니다. 두 패널티는 0 이하이며, 여기서 길이는 실제 km가 아니라 **경로에 포함된 역 수**를 뜻합니다. 자세한 계산과 구현 범위는 [방법론](docs/methodology.md)에 정리했습니다.
 
+## 개선 전후 결과
+
+| 국소 개선 전 | 국소 개선 후 |
+| --- | --- |
+| ![국소 개선 전 노선망, 적합도 18.31](assets/before_optimization.png) | ![국소 개선 후 노선망, 적합도 20.17](assets/after_optimization.png) |
+| 적합도 **18.31** | 적합도 **20.17** |
+
+두 그림과 수치는 원본 Colab의 마지막 `개체 개선 알고리즘` 셀에 저장된 결과입니다. 자체 목적함수의 개선을 보여주며, 실제 이동시간이나 수송량의 개선율을 뜻하지 않습니다. 원본 실행의 난수 시드는 기록되어 있지 않아 재실행 결과는 달라질 수 있습니다. 출처는 [원본 기록](docs/provenance.json)에 남겼습니다.
+
 ## 실행 방법
 
 ### Colab
 
 1. [GitHub 노트북을 Colab에서 열기](https://colab.research.google.com/github/JunH14/Subway-Route-Optimization/blob/main/notebooks/subway_route_optimization.ipynb)
-2. [필수 엑셀 4개](data/README.md)를 Colab의 `/content/`에 업로드합니다.
+2. 새 코드 셀에서 아래 준비 코드를 실행하면 저장소에 포함된 [엑셀 4개](data/README.md)를 원본 코드가 읽는 `/content/`에 복사합니다.
 3. 마지막 **`개체 개선 알고리즘`** 코드 셀을 실행합니다. 이 셀은 최종 실험에 필요한 import와 함수를 자체적으로 포함합니다.
+
+```python
+from pathlib import Path
+import shutil
+import subprocess
+
+repo_dir = Path("/content/Subway-Route-Optimization")
+if not (repo_dir / ".git").is_dir():
+    subprocess.run([
+        "git", "clone", "--depth", "1",
+        "https://github.com/JunH14/Subway-Route-Optimization.git", str(repo_dir)
+    ], check=True)
+for file in (repo_dir / "data").glob("*.xlsx"):
+    shutil.copy2(file, Path("/content") / file.name)
+```
 
 전체 노트북은 실험 기록이므로 각 실험을 선택해 실행합니다. 위에서부터 모두 실행하려면 중간 실험용 파일도 필요합니다. 원본의 최종 설정은 후보 생성 100,000회, 국소 개선 10,000회로 실행 시간이 길 수 있습니다.
 
@@ -46,7 +71,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-엑셀 4개를 `data/`에 넣고 먼저 입력을 확인합니다.
+최종 실행에 필요한 엑셀 4개는 `data/`에 포함되어 있습니다. 다운로드한 데이터로 먼저 입력을 확인합니다.
 
 ```bash
 python src/optimize_routes.py --data-dir ./data --check-data
@@ -61,7 +86,7 @@ python src/optimize_routes.py --data-dir ./data --seed 42 --output-dir ./outputs
 짧은 동작 확인은 다음과 같이 실행할 수 있습니다. 시도 횟수가 적으면 유효한 후보가 하나도 생성되지 않을 수 있으며, 이때 실행기는 이유를 출력하고 종료합니다.
 
 ```bash
-python src/optimize_routes.py --data-dir ./data --trials 100 --iterations 10 --top-k 1 --seed 42 --no-show --output-dir ./outputs/smoke
+python src/optimize_routes.py --data-dir ./data --trials 3000 --iterations 10 --top-k 1 --seed 42 --no-show --output-dir ./outputs/smoke
 ```
 
 `--output-dir`을 지정하면 후보 그림, 개선 후 그림과 경로·점수가 담긴 `result.json`을 저장합니다. 옵션을 생략하면 결과 파일을 저장하지 않습니다. VS Code에서는 저장소 폴더를 열고 `.venv`의 Python 인터프리터를 선택합니다.
@@ -75,10 +100,12 @@ python src/optimize_routes.py --data-dir ./data --trials 100 --iterations 10 --t
 | `requirements.txt` | 최종 실행기 의존성 |
 | `requirements-exploration.txt` | 지도, OSM 시설 조회 등 중간 실험용 추가 의존성 |
 | `data/README.md` | 필요한 데이터 파일과 열 구조 |
+| `data/*.xlsx` | 최종 실행에 필요한 원본 엑셀 4개 |
+| `assets/` | 원본 Colab에서 추출한 개선 전·후 결과 그림 2장 |
 | `docs/methodology.md` | 점수 계산, 실험 범위, 원본 구현의 한계 |
-| `docs/provenance.json` | 원본 링크, 셀 수와 원본 파일 해시 |
+| `docs/provenance.json` | 원본 링크·셀 수, 데이터 해시와 결과 그림 출처 |
 
-입력 엑셀은 이 저장소에 포함되어 있지 않습니다. 노트북에 필요한 파일은 `data/README.md`를 참고하세요.
+입력 엑셀은 파일명과 내용 그대로 포함했습니다. 각 파일의 필수 열과 중간 실험용 추가 파일은 [데이터 안내](data/README.md)를 참고하세요.
 
 ## 원본과 후속 과제
 

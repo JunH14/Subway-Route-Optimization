@@ -6,5 +6,35 @@
   "original_cell_count": 33,
   "final_cell_index_zero_based": 32,
   "archived_cell_sources_unchanged": true,
-  "archived_outputs_cleared": true
+  "archived_outputs_cleared": true,
+  "result_images": {
+    "source_cell_index_zero_based": 32,
+    "before": {
+      "file": "assets/before_optimization.png",
+      "saved_score": 18.31
+    },
+    "after": {
+      "file": "assets/after_optimization.png",
+      "saved_score": 20.17
+    },
+    "note": "Original saved Colab output; not a newly reproduced performance result."
+  },
+  "included_data": [
+    {
+      "file": "data/쌍가중치_정규화_OD.xlsx",
+      "sha256": "11303829b2573b9804383687b287acbe9d7e0e1b834a099b953047ec46e1b8c2"
+    },
+    {
+      "file": "data/엣지데이터 신규.xlsx",
+      "sha256": "307d3ead5bfb6b8bc9d4ee0795de25792d3302766c240558e7afffddd6325e30"
+    },
+    {
+      "file": "data/역 경도 위도.xlsx",
+      "sha256": "c6cac3095df1d024320d16f5104993cb94f9c0eb0ae9401dbbceedd7d3bc223b"
+    },
+    {
+      "file": "data/총점수_정규화_역주변시설.xlsx",
+      "sha256": "f037166df220f2e6c572ef010fe9631018abc19920eec1de38f847081d6fa94a"
+    }
+  ]
 }
